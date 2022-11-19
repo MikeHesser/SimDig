@@ -2,7 +2,7 @@
  ****************************************************************************
  *                                  SimDig                                  *
  *                      Copyright (c) 1992 by Mike Hesser                   *
- *                        mîgen die GATES mit dir sein!                     *
+ *                         may the GATES be with you                        *
  ****************************************************************************
  * 04.07.92 *
 }
@@ -26,7 +26,7 @@ CONST GX = 12; GY = 12; AX = 5; AY = 3; AX2 = 2*AX; AY2 = 2*AY;
       GMO = (MY-1) * CHARHEIGHT; GMH = (MH+1)*CHARHEIGHT;
       MBY = 21; MAXMENP = 7; MBH = MAXMENP;        (* fÅr MenÅ *)
       MO = (MBY-1) * CHARHEIGHT; MMH = (MBH+1)*CHARHEIGHT;
-      MAXGATES = 40; MAXCON = 100;   (* Dimensionierung *)
+      MAXGATES = 40; MAXCON = 100;   (* Dimensions *)
       MAXNR = 100; MAXINF = MAXCON;
       PLACEF = 0; LINEF = 1; SIMF = 2; ZIPF = 3;
       REDON = 3; HREDON = 4; DREDON = 5; REDOFF = 7;
@@ -34,7 +34,7 @@ CONST GX = 12; GY = 12; AX = 5; AY = 3; AX2 = 2*AX; AY2 = 2*AY;
       GRAY = 13; MAXDATEIEN = 8; ATTR = $100;
       BACKC = BLACK;
       TRACE = FALSE;
-      ErrorMess: ARRAY[2..3] OF STRING[15] = ('Dateifehler','Keine SigDatei');
+      ErrorMess: ARRAY[2..3] OF STRING[15] = ('File error', 'No Sig file');
       SEG7DAT: ARRAY[0..15] OF BYTE =
           (126,48,109,121,51,91,95,112,127,123,119,31,78,61,79,71);
       ANNR = 0; ORNR = 1; NONR = 2; NANR = 3; TFNR = 4; JKNR = 5; VANR = 6;
@@ -53,20 +53,20 @@ TYPE  BezTyp = STRING[2];
     GATETTYP = RECORD
                  name: STRING[10];
                   b,h: BYTE;
-                   ap: BYTE;               (* Anzahl AnschlÅsse *)
+                   ap: BYTE;               (* Number of connections *)
                END;
      GATETYP = RECORD
                   x,y: BYTE;
                   typ: BYTE;
-                 zust: BYTE;               (* Zustand *)
+                 zust: BYTE;               (* state *)
                     p: ARRAY[1..MAXPINS] OF BYTE;
                END;
 
       CONTYP = RECORD
-                  x,y: BYTE;             (* Koordinaten *)
-                   le: SHORTINT;         (* LÑnge + Richtung *)
-                p1,p2: BYTE;             (* Zeiger auf nÑchste Leitung *)
-                point: BYTE;             (* Zeiger auf INFO-TAB *)
+                  x,y: BYTE;             (* Coordinates *)
+                   le: SHORTINT;         (* Length and direction *)
+                p1,p2: BYTE;             (* Pointer to next wire *)
+                point: BYTE;             (* Pointer to INFO-TAB *)
                END;
 
 VAR MATRIX: ARRAY[0..RX+1,0..RY] OF BYTE;
@@ -80,14 +80,14 @@ VAR MATRIX: ARRAY[0..RX+1,0..RY] OF BYTE;
     Datei: DateiTyp;
     FCB: SearchRec;
     DName: DListTyp;
-    ECode: BYTE;  (* Error Code bei FileRequester *)
+    ECode: BYTE;  (* Error Code in FileRequester *)
     i,j: INTEGER;
     gm,gd: INTEGER;
     x,y,k: INTEGER;
     xo,yo,xxr,yyr,px,py,xr,yr: RKTYP;
     br,ho: BYTE;
     SCRMAXX,SCRMAXY,GRX,GRY,rastx,rasty: INTEGER;
-    ConP,GatP: INTEGER; (* Zeiger *)
+    ConP,GatP: INTEGER; (* Pointer *)
     Size,SizeL: WORD;
     Obj,ObjLON,ObjLOFF: POINTER;
     Typ,MFlag,mi: BYTE;
@@ -96,7 +96,7 @@ VAR MATRIX: ARRAY[0..RX+1,0..RY] OF BYTE;
     lfd,mp,gp,opm,opg: BYTE;
     pu1,pu2: BYTE;
 
-(*                          ØØØØ Mouse Pack ÆÆÆÆ                            *)
+(*         Mouse utility functions     *)
 
 PROCEDURE MouseOn;
 BEGIN
@@ -187,7 +187,7 @@ VAR error: INTEGER;
 
 BEGIN
   gd:= VGA; gm:= GMODE;
-  InitGraph(gd,gm,'c:\language\bp\bgi');
+  InitGraph(gd,gm,'bgi');
   error:= GraphResult;
   IF error<>grok THEN
     BEGIN
@@ -213,7 +213,7 @@ BEGIN
   GRX:= 570; GRY:= 10;
   rastx:= RX;
   rasty:= RY;
-  FillMatrix(0,0,RX,RY,0,FALSE);
+  FillMatrix(0,0,RX,RY,0,FALSE); (* Clear board *)
   WITH GATET[ANNR] DO BEGIN name:= 'AND'; b:= 3; h:= 3; ap:= 3; END;
   WITH GATET[ORNR] DO BEGIN name:= 'OR';  b:= 3; h:= 3; ap:= 3; END;
   WITH GATET[NONR] DO BEGIN name:= 'NOT'; b:= 3; h:= 3; ap:= 2; END;
@@ -232,7 +232,7 @@ BEGIN
   MENU[6]:= 'New'; MENU[7]:= 'Quit';
 
   Path:= 'C:\*.*';
-  Reg.AX:=$21; Intr($33,Reg); (* Reset des Maustreibers *)
+  Reg.AX:=$21; Intr($33,Reg); (* Reset of mouse driver *)
 
   Size:= ImageSize(GOX,GOY,GOX+(4*GX),GOY+(4*GY));
   SizeL:= ImageSize(GOX,GOY,GOX+GX,GOY+GY);
@@ -242,8 +242,8 @@ BEGIN
   LAMP(GOX,GOY,FALSE); GetImage(GOX,GOY,GOX+GX,GOY+GY,ObjLON^);
   LAMP(GOX,GOY,TRUE);  GetImage(GOX,GOY,GOX+GX,GOY+GY,ObjLOFF^);
   ClearDevice;
-  ConP:= 1; lfd:= 0; (* Verwaltung fÅr Verbindungsleitungen *)
-  GatP:= 1;          (* Verwaltung fÅr Gates *)
+  ConP:= 1; lfd:= 0; (* Handling of connectors *)
+  GatP:= 1;          (* Handling of gates *)
   pu2:= 0;
   opm:= 0; opg:= 0;
   PFlag:= FALSE;
@@ -322,7 +322,7 @@ BEGIN
   Line(GRX,MO-2,SCRMAXX,MO-2);
 {  SetViewPort(1,1,SCRMAXX-1,SCRMAXY-1,CLIPON);}
   TextColor(YELLOW);
-  GotoXY(35,30); writeln('SimDig Copyright (c) by Mike Hesser TG13');
+  GotoXY(35,30); writeln('SimDig written in 1992 by Mike Hesser');
   TextColor(LIGHTBLUE);
   FOR i:= 0 TO MH DO
     BEGIN
@@ -339,7 +339,7 @@ END;
 PROCEDURE ShowEMess(Code:BYTE);
 BEGIN
   TextColor(YELLOW);
-  GotoXY(35,30); writeln('SimDig Copyright (c) by Mike Hesser TG13');
+  GotoXY(35,30); writeln('SimDig written in 1992 by Mike Hesser');
   TextColor(REDON);
   IF Code>1 THEN
     BEGIN
@@ -1595,7 +1595,7 @@ END;
 (***************************************************************************)
 
 BEGIN {main}
-  Init; Title; View;
+  Init; (*Title;*) View;
   New;
   MouseOn;
   QuitF:= FALSE;
